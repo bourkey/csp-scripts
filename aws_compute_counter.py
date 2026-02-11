@@ -52,14 +52,19 @@ class AWSComputeCounter:
     def _get_all_regions(self):
         """Get all available AWS regions."""
         try:
+            # Use us-east-1 as the endpoint to query for all regions
             ec2 = boto3.client("ec2", region_name="us-east-1")
             response = ec2.describe_regions()
             regions = [region["RegionName"] for region in response["Regions"]]
             self._log(f"Found {len(regions)} AWS regions", "success")
             return regions
         except Exception as e:
-            self._log(f"Error getting regions, using default: {e}", "warning")
-            return ["us-east-1"]
+            error_msg = (
+                f"Failed to retrieve AWS regions: {e}\n"
+                "Please specify regions explicitly using the --regions flag.\n"
+                "Example: --regions us-east-1,us-west-2,eu-west-1"
+            )
+            raise Exception(error_msg) from e
 
     def count_ec2_instances(self):
         """Count EC2 instances across all regions."""
@@ -361,7 +366,7 @@ class AWSComputeCounter:
 @click.command()
 @click.option(
     "--regions",
-    help="Comma-separated list of AWS regions (default: all regions)",
+    help="Comma-separated list of AWS regions (default: auto-detect all regions)",
     default=None,
 )
 @click.option(

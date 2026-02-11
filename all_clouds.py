@@ -9,6 +9,8 @@ Runs all provider scripts and combines results into a unified view.
 import json
 import sys
 import subprocess
+import tempfile
+import os
 from datetime import datetime
 from collections import defaultdict
 
@@ -33,6 +35,7 @@ class MultiCloudCounter:
         self.verbose = verbose
         self.results = {}
         self.errors = []
+        self.temp_dir = tempfile.gettempdir()
 
     def _log(self, message, level="info"):
         """Log message if verbose mode is enabled."""
@@ -50,8 +53,11 @@ class MultiCloudCounter:
         self._log("Counting AWS resources...", "info")
 
         try:
-            # Build command
-            cmd = ["python3", "aws_compute_counter.py", "--format", "json", "--output", "/tmp/aws_results.json"]
+            # Create temp file for results
+            aws_results_file = os.path.join(self.temp_dir, "aws_results.json")
+
+            # Build command using current Python interpreter
+            cmd = [sys.executable, "aws_compute_counter.py", "--format", "json", "--output", aws_results_file]
 
             if regions:
                 cmd.extend(["--regions", regions])
@@ -64,8 +70,10 @@ class MultiCloudCounter:
 
             if result.returncode == 0:
                 # Load results
-                with open("/tmp/aws_results.json", "r") as f:
+                with open(aws_results_file, "r") as f:
                     self.results["aws"] = json.load(f)
+                # Clean up temp file
+                os.remove(aws_results_file)
                 self._log("AWS counting completed successfully", "success")
             else:
                 error_msg = result.stderr or result.stdout
@@ -85,8 +93,11 @@ class MultiCloudCounter:
         self._log("Counting Azure resources...", "info")
 
         try:
-            # Build command
-            cmd = ["python3", "azure_compute_counter.py", "--format", "json", "--output", "/tmp/azure_results.json"]
+            # Create temp file for results
+            azure_results_file = os.path.join(self.temp_dir, "azure_results.json")
+
+            # Build command using current Python interpreter
+            cmd = [sys.executable, "azure_compute_counter.py", "--format", "json", "--output", azure_results_file]
 
             if subscription_id:
                 cmd.extend(["--subscription-id", subscription_id])
@@ -99,8 +110,10 @@ class MultiCloudCounter:
 
             if result.returncode == 0:
                 # Load results
-                with open("/tmp/azure_results.json", "r") as f:
+                with open(azure_results_file, "r") as f:
                     self.results["azure"] = json.load(f)
+                # Clean up temp file
+                os.remove(azure_results_file)
                 self._log("Azure counting completed successfully", "success")
             else:
                 error_msg = result.stderr or result.stdout
@@ -120,8 +133,11 @@ class MultiCloudCounter:
         self._log("Counting GCP resources...", "info")
 
         try:
-            # Build command
-            cmd = ["python3", "gcp_compute_counter.py", "--format", "json", "--output", "/tmp/gcp_results.json"]
+            # Create temp file for results
+            gcp_results_file = os.path.join(self.temp_dir, "gcp_results.json")
+
+            # Build command using current Python interpreter
+            cmd = [sys.executable, "gcp_compute_counter.py", "--format", "json", "--output", gcp_results_file]
 
             if project_id:
                 cmd.extend(["--project", project_id])
@@ -134,8 +150,10 @@ class MultiCloudCounter:
 
             if result.returncode == 0:
                 # Load results
-                with open("/tmp/gcp_results.json", "r") as f:
+                with open(gcp_results_file, "r") as f:
                     self.results["gcp"] = json.load(f)
+                # Clean up temp file
+                os.remove(gcp_results_file)
                 self._log("GCP counting completed successfully", "success")
             else:
                 error_msg = result.stderr or result.stdout

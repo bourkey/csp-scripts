@@ -185,6 +185,7 @@ Attach this IAM policy to your user or role:
     {
       "Effect": "Allow",
       "Action": [
+        "ec2:DescribeRegions",
         "ec2:DescribeInstances",
         "eks:ListClusters",
         "eks:DescribeCluster",
@@ -199,6 +200,8 @@ Attach this IAM policy to your user or role:
   ]
 }
 ```
+
+**Note**: `ec2:DescribeRegions` is required for automatic region detection. If you don't have this permission, specify regions explicitly with `--regions`.
 
 ### Azure
 Minimum required role: **Reader** at the subscription level
@@ -235,6 +238,19 @@ Error: Rate limit exceeded
 Error: Connection timeout
 ```
 **Solution**: Check internet connectivity and cloud provider API status pages
+
+### AWS Region Detection Failure
+```
+Error: Failed to retrieve AWS regions
+```
+**Solution**: The script cannot auto-detect available AWS regions. Specify regions explicitly:
+```bash
+python aws_compute_counter.py --regions us-east-1,us-west-2,eu-west-1
+```
+This typically happens when:
+- AWS credentials are missing or invalid
+- Network connectivity issues prevent API calls
+- Insufficient permissions to call `ec2:DescribeRegions`
 
 ## Project Structure
 

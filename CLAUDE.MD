@@ -139,6 +139,7 @@ pytest tests/
     {
       "Effect": "Allow",
       "Action": [
+        "ec2:DescribeRegions",
         "ec2:DescribeInstances",
         "eks:ListClusters",
         "eks:DescribeCluster",
@@ -153,6 +154,8 @@ pytest tests/
   ]
 }
 ```
+
+**Important**: `ec2:DescribeRegions` is required for automatic region detection. Without this permission, users must specify regions explicitly using the `--regions` flag.
 
 ### Azure RBAC Roles
 - **Reader** role at subscription level (minimum)
